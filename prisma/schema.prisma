@@ -1,0 +1,112 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(uuid())
+  nullifierHash String         @unique
+  email         String?
+  role          UserRole       @default(USER)
+  tickets       Ticket[]
+  notifications Notification[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Raffle {
+  id            String         @id @default(uuid())
+  title         String
+  description   String
+  price         Float
+  totalTickets  Int
+  soldTickets   Int           @default(0)
+  endDate       DateTime
+  status        RaffleStatus  @default(OPEN)
+  winnerId      String?
+  tickets       Ticket[]
+  notifications Notification[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  createdBy     String        // nullifierHash del admin que creó el sorteo
+  stats         RaffleStats?
+}
+
+model RaffleStats {
+  id              String   @id @default(uuid())
+  raffle          Raffle   @relation(fields: [raffleId], references: [id])
+  raffleId        String   @unique
+  totalRevenue    Float    @default(0)
+  ticketsSold     Int      @default(0)
+  uniqueParticipants Int   @default(0)
+  averageTicketsPerUser Float @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Ticket {
+  id         String   @id @default(uuid())
+  number     Int
+  raffle     Raffle   @relation(fields: [raffleId], references: [id])
+  raffleId   String
+  user       User     @relation(fields: [userId], references: [nullifierHash])
+  userId     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([raffleId, number])
+}
+
+model Notification {
+  id        String             @id @default(uuid())
+  user      User              @relation(fields: [userId], references: [nullifierHash])
+  userId    String
+  raffle    Raffle            @relation(fields: [raffleId], references: [id])
+  raffleId  String
+  type      NotificationType
+  status    NotificationStatus
+  content   String
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+model AdminSettings {
+  id                String   @id @default(uuid())
+  maxTicketsPerUser Int      @default(10)
+  minTicketPrice   Float    @default(0.1)
+  maxTicketPrice   Float    @default(100)
+  platformFee      Float    @default(0.05) // 5% por defecto
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum RaffleStatus {
+  OPEN
+  CLOSED
+  CANCELLED
+}
+
+enum NotificationType {
+  WINNER
+  UPDATE
+  REMINDER
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+} 
