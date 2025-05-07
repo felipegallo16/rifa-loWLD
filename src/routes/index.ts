@@ -1,13 +1,12 @@
-import { Router } from 'express';
-import raffleRoutes from './raffles';
-import ticketRoutes from './tickets';
-import worldIDRoutes from './worldid';
+import { Express } from 'express';
+import { verifyProof } from '../controllers/worldid.controller';
+import { purchaseTicket, getAvailableNumbers } from '../controllers/ticket.controller';
 
-const router = Router();
+export const setupRoutes = (app: Express) => {
+  // World ID routes
+  app.post('/api/verify', verifyProof);
 
-// Rutas principales
-router.use('/raffles', raffleRoutes);
-router.use('/tickets', ticketRoutes);
-router.use('/worldid', worldIDRoutes);
-
-export default router; 
+  // Ticket routes
+  app.post('/api/tickets/purchase', purchaseTicket);
+  app.get('/api/tickets/available/:raffleId', getAvailableNumbers);
+}; 

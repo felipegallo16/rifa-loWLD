@@ -41,6 +41,12 @@ router.get(
 );
 
 router.get(
+  '/raffle/:raffleId/random',
+  requireAuth,
+  ticketController.getRandomNumber
+);
+
+router.get(
   '/raffle/:raffleId/search',
   requireAuth,
   ticketController.searchNumbers

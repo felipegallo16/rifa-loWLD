@@ -11,32 +11,36 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  nullifierHash String         @unique
-  email         String?
-  role          UserRole       @default(USER)
-  tickets       Ticket[]
-  notifications Notification[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id             String   @id @default(uuid())
+  nullifier_hash String   @unique
+  tokens         Int      @default(1)
+  tickets        Ticket[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model Raffle {
-  id            String         @id @default(uuid())
-  title         String
-  description   String
-  price         Float
-  totalTickets  Int
-  soldTickets   Int           @default(0)
-  endDate       DateTime
-  status        RaffleStatus  @default(OPEN)
-  winnerId      String?
-  tickets       Ticket[]
-  notifications Notification[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  createdBy     String        // nullifierHash del admin que creó el sorteo
-  stats         RaffleStats?
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  prize       String
+  endDate     DateTime
+  tickets     Ticket[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Ticket {
+  id        String   @id @default(uuid())
+  number    Int
+  userId    String
+  raffleId  String
+  user      User     @relation(fields: [userId], references: [id])
+  raffle    Raffle   @relation(fields: [raffleId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([raffleId, number])
 }
 
 model RaffleStats {
@@ -49,19 +53,6 @@ model RaffleStats {
   averageTicketsPerUser Float @default(0)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-}
-
-model Ticket {
-  id         String   @id @default(uuid())
-  number     Int
-  raffle     Raffle   @relation(fields: [raffleId], references: [id])
-  raffleId   String
-  user       User     @relation(fields: [userId], references: [nullifierHash])
-  userId     String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@unique([raffleId, number])
 }
 
 model Notification {

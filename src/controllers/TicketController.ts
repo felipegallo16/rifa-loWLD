@@ -29,6 +29,7 @@ export class TicketController {
     this.searchNumbers = this.searchNumbers.bind(this);
     this.getSuggestedNumbers = this.getSuggestedNumbers.bind(this);
     this.reserveNumbers = this.reserveNumbers.bind(this);
+    this.getRandomNumber = this.getRandomNumber.bind(this);
   }
 
   // Obtener tickets del usuario
@@ -357,8 +358,56 @@ export class TicketController {
   }
 
   private getRandomNumbers(numbers: TicketNumber[], count: number): TicketNumber[] {
-    const shuffled = [...numbers].sort(() => Math.random() - 0.5);
+    const availableNumbers = numbers.filter(n => !n.isSold && !n.isReserved);
+    const shuffled = [...availableNumbers].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, count);
+  }
+
+  // Obtener un número aleatorio
+  async getRandomNumber(req: Request, res: Response) {
+    try {
+      const { raffleId } = req.params;
+      
+      const raffle = await prisma.raffle.findUnique({
+        where: { id: raffleId },
+        include: {
+          tickets: {
+            select: { number: true }
+          }
+        }
+      });
+
+      if (!raffle) {
+        return res.status(404).json({ error: 'Raffle not found' });
+      }
+
+      const soldNumbers = raffle.tickets.map(t => t.number);
+      const allNumbers: TicketNumber[] = Array.from(
+        { length: raffle.totalTickets },
+        (_, i) => ({
+          number: i + 1,
+          isSold: soldNumbers.includes(i + 1),
+          isReserved: reservationService.isNumberReserved(raffleId, i + 1)
+        })
+      );
+
+      const randomNumber = this.getRandomNumbers(allNumbers, 1)[0];
+
+      if (!randomNumber) {
+        return res.status(404).json({ error: 'No available numbers found' });
+      }
+
+      // Reservar automáticamente el número por 5 minutos
+      await this.reserveNumbers(req, res);
+
+      return res.json({
+        number: randomNumber.number,
+        message: 'Number has been reserved for 5 minutes'
+      });
+    } catch (error) {
+      console.error('Error getting random number:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
   }
 
   // Comprar tickets con números específicos
