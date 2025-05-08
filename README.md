@@ -1,41 +1,28 @@
-# Rifa-lo 🎫
+# Rifa LoWLD
 
-Una plataforma de sorteos verificados usando World ID para garantizar la transparencia y legitimidad de los participantes.
+Aplicación de rifas integrada con World ID, permitiendo la verificación de identidad única para la participación en rifas usando WLD tokens.
 
-## Características 🌟
+## Características
 
-- Sistema de sorteos con verificación de identidad usando World ID
-- Tickets personalizables con números a elección
-- Sistema de reserva temporal de números
-- Sugerencia de números (secuenciales, lucky, random)
-- Búsqueda y filtrado de números disponibles
-- Sistema de pago con tokens de Worldcoin
-- Seguridad robusta con rate limiting y auditoría
+- Autenticación con World ID
+- Compra de tickets usando WLD tokens
+- Sistema de rifas automatizado
+- Interfaz moderna y responsiva
+- Backend seguro con Node.js/TypeScript
+- Frontend con Next.js y Tailwind CSS
 
-## Tecnologías 🛠
+## Requisitos
 
-- Node.js & TypeScript
-- Express.js
-- Prisma ORM
-- Redis para rate limiting
-- Winston para logging
-- World ID para verificación de identidad
-- Worldcoin para pagos
+- Node.js 18 o superior
+- SQLite
+- World ID API Key
 
-## Requisitos Previos 📋
-
-- Node.js 18+
-- Redis
-- PostgreSQL
-- Cuenta de World ID
-- Tokens de Worldcoin para testing
-
-## Instalación 🚀
+## Instalación
 
 1. Clonar el repositorio:
 ```bash
-git clone https://github.com/tu-usuario/rifa-lo.git
-cd rifa-lo
+git clone git@github.com:felipegallo16/rifa-loWLD.git
+cd rifa-loWLD
 ```
 
 2. Instalar dependencias:
@@ -44,12 +31,16 @@ npm install
 ```
 
 3. Configurar variables de entorno:
-```bash
-cp .env.example .env
-# Editar .env con tus credenciales
+Crear un archivo `.env` con las siguientes variables:
+```env
+PORT=3001
+DATABASE_URL="file:./dev.db"
+WORLD_ID_APP_ID="app_..."
+WORLD_ID_ACTION_NAME="..."
+WORLD_ID_RECEIVER_ADDRESS="..."
 ```
 
-4. Ejecutar migraciones de la base de datos:
+4. Ejecutar migraciones:
 ```bash
 npx prisma migrate dev
 ```
@@ -59,58 +50,16 @@ npx prisma migrate dev
 npm run dev
 ```
 
-## Estructura del Proyecto 📁
+## Estructura del Proyecto
 
-```
-src/
-├── controllers/     # Controladores de la aplicación
-├── middleware/     # Middleware personalizado
-├── routes/         # Definición de rutas
-├── services/       # Lógica de negocio
-├── types/         # Tipos TypeScript
-└── utils/         # Utilidades y helpers
-```
+- `/src` - Código fuente del backend
+  - `/controllers` - Controladores de la aplicación
+  - `/routes` - Rutas de la API
+  - `/services` - Lógica de negocio
+  - `/middleware` - Middlewares de Express
+  - `/types` - Tipos de TypeScript
+  - `/utils` - Utilidades
 
-## API Endpoints 🔌
+## Licencia
 
-### Sorteos
-- `GET /api/raffles` - Listar sorteos
-- `POST /api/raffles` - Crear sorteo
-- `GET /api/raffles/:id` - Obtener sorteo
-- `PUT /api/raffles/:id` - Actualizar sorteo
-- `DELETE /api/raffles/:id` - Eliminar sorteo
-
-### Tickets
-- `GET /api/tickets` - Listar tickets
-- `POST /api/tickets` - Comprar ticket
-- `GET /api/tickets/:id` - Obtener ticket
-- `GET /api/tickets/suggest` - Sugerir números
-
-### Verificación
-- `POST /api/verify` - Verificar identidad con World ID
-
-## Seguridad 🔒
-
-- Rate limiting por IP y por usuario
-- Validación de datos con Zod
-- Protección contra XSS, CSRF y SQL Injection
-- Sistema de auditoría con Winston logger
-- Monitoreo de actividades sospechosas
-
-## Contribuir 🤝
-
-1. Fork el proyecto
-2. Crear una rama (`git checkout -b feature/amazing`)
-3. Commit los cambios (`git commit -m 'Add amazing feature'`)
-4. Push a la rama (`git push origin feature/amazing`)
-5. Abrir un Pull Request
-
-## Licencia 📄
-
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
-
-## Contacto 📧
-
-Tu Nombre - [@tutwitter](https://twitter.com/tutwitter) - email@example.com
-
-Link del proyecto: [https://github.com/tu-usuario/rifa-lo](https://github.com/tu-usuario/rifa-lo) 
+MIT 
