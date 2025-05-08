@@ -6,66 +6,88 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
-  id             String   @id @default(uuid())
-  nullifier_hash String   @unique
-  tokens         Int      @default(1)
+  id             String           @id @default(uuid())
+  nullifier_hash String           @unique
+  wld_balance    Float            @default(1.0)
+  role           String           @default("USER")
   tickets        Ticket[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  transactions   WLDTransaction[]
+  notifications  Notification[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  prizes         Prize[]
 }
 
 model Raffle {
-  id          String   @id @default(uuid())
-  name        String
-  description String
-  prize       String
-  endDate     DateTime
-  tickets     Ticket[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String           @id @default(uuid())
+  name          String
+  description   String
+  endDate       DateTime
+  status        String           @default("OPEN")
+  drawData      String?          // Almacenará el JSON como string
+  tickets       Ticket[]
+  stats         RaffleStats?
+  notifications Notification[]
+  prize         Prize?           // Hacemos el campo opcional
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 }
 
 model Ticket {
-  id        String   @id @default(uuid())
-  number    Int
-  userId    String
-  raffleId  String
-  user      User     @relation(fields: [userId], references: [id])
-  raffle    Raffle   @relation(fields: [raffleId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String           @id @default(uuid())
+  number       Int
+  userId       String
+  raffleId     String
+  user         User             @relation(fields: [userId], references: [id])
+  raffle       Raffle           @relation(fields: [raffleId], references: [id])
+  transactions WLDTransaction[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
   @@unique([raffleId, number])
 }
 
 model RaffleStats {
-  id              String   @id @default(uuid())
-  raffle          Raffle   @relation(fields: [raffleId], references: [id])
-  raffleId        String   @unique
-  totalRevenue    Float    @default(0)
-  ticketsSold     Int      @default(0)
-  uniqueParticipants Int   @default(0)
-  averageTicketsPerUser Float @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                   String   @id @default(uuid())
+  raffle              Raffle   @relation(fields: [raffleId], references: [id])
+  raffleId            String   @unique
+  totalRevenue        Float    @default(0)
+  ticketsSold         Int      @default(0)
+  uniqueParticipants  Int      @default(0)
+  averageTicketsPerUser Float  @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 model Notification {
-  id        String             @id @default(uuid())
-  user      User              @relation(fields: [userId], references: [nullifierHash])
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
   userId    String
-  raffle    Raffle            @relation(fields: [raffleId], references: [id])
+  raffle    Raffle   @relation(fields: [raffleId], references: [id])
   raffleId  String
-  type      NotificationType
-  status    NotificationStatus
+  type      String   @default("UPDATE")
+  status    String   @default("PENDING")
   content   String
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WLDTransaction {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  amount    Float
+  type      String   @default("PURCHASE")
+  status    String   @default("PENDING")
+  ticketId  String?
+  ticket    Ticket?  @relation(fields: [ticketId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model AdminSettings {
@@ -78,26 +100,16 @@ model AdminSettings {
   updatedAt        DateTime @updatedAt
 }
 
-enum UserRole {
-  USER
-  ADMIN
-  SUPER_ADMIN
-}
-
-enum RaffleStatus {
-  OPEN
-  CLOSED
-  CANCELLED
-}
-
-enum NotificationType {
-  WINNER
-  UPDATE
-  REMINDER
-}
-
-enum NotificationStatus {
-  PENDING
-  SENT
-  FAILED
+model Prize {
+  id            String    @id @default(uuid())
+  raffleId      String   @unique
+  raffle        Raffle   @relation(fields: [raffleId], references: [id])
+  winnerId      String
+  winner        User     @relation(fields: [winnerId], references: [id])
+  status        String   @default("PENDING") // PENDING, CLAIMED, DELIVERED
+  claimData     String?  // Datos de contacto proporcionados al reclamar (JSON como string)
+  claimedAt     DateTime?
+  deliveryDate  DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 } 

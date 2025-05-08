@@ -39,8 +39,8 @@ const updateRaffleSchema = z.object({
 });
 
 // Rutas públicas
-router.get('/', raffleController.getAllRaffles);
-router.get('/:id', raffleController.getRaffleById);
+router.get('/', requireAuth, raffleController.getAllRaffles);
+router.get('/:id', requireAuth, raffleController.getRaffleById);
 
 // Rutas protegidas (requieren autenticación)
 router.get('/user/participating', requireAuth, raffleController.getUserParticipatingRaffles);

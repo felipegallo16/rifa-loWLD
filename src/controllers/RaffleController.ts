@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { NotificationService } from '../services/NotificationService';
 import { StatsService } from '../services/StatsService';
+import { AppError } from '../middleware/errorHandler';
 
 const prisma = new PrismaClient();
 const notificationService = new NotificationService();
@@ -79,12 +80,15 @@ export class RaffleController {
   // Obtener sorteos en los que participa un usuario
   async getUserParticipatingRaffles(req: Request, res: Response) {
     try {
-      const userId = req.user.nullifierHash;
+      if (!req.user?.nullifier_hash) {
+        throw new AppError(401, 'Usuario no autenticado');
+      }
+
       const raffles = await prisma.raffle.findMany({
         where: {
           tickets: {
             some: {
-              userId,
+              userId: req.user.nullifier_hash,
             },
           },
         },
@@ -92,7 +96,7 @@ export class RaffleController {
           stats: true,
           tickets: {
             where: {
-              userId,
+              userId: req.user.nullifier_hash,
             },
             select: {
               id: true,
@@ -105,6 +109,9 @@ export class RaffleController {
       return res.json(raffles);
     } catch (error) {
       console.error('Error getting user participating raffles:', error);
+      if (error instanceof AppError) {
+        return res.status(error.httpStatus).json({ error: error.message });
+      }
       return res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -112,10 +119,13 @@ export class RaffleController {
   // Obtener sorteos creados por un usuario (admin)
   async getUserCreatedRaffles(req: Request, res: Response) {
     try {
-      const userId = req.user.nullifierHash;
+      if (!req.user?.nullifier_hash) {
+        throw new AppError(401, 'Usuario no autenticado');
+      }
+
       const raffles = await prisma.raffle.findMany({
         where: {
-          createdBy: userId,
+          createdBy: req.user.nullifier_hash,
         },
         include: {
           stats: true,
@@ -132,6 +142,9 @@ export class RaffleController {
       return res.json(raffles);
     } catch (error) {
       console.error('Error getting user created raffles:', error);
+      if (error instanceof AppError) {
+        return res.status(error.httpStatus).json({ error: error.message });
+      }
       return res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -140,20 +153,20 @@ export class RaffleController {
   async createRaffle(req: Request, res: Response) {
     try {
       const { title, description, price, totalTickets, endDate } = req.body;
-      const createdBy = req.user?.nullifierHash;
-
-      if (!createdBy) {
-        return res.status(401).json({ error: 'User not authenticated' });
+      
+      if (!req.user?.nullifier_hash) {
+        throw new AppError(401, 'Usuario no autenticado');
       }
 
       const raffle = await prisma.raffle.create({
         data: {
-          title,
+          name: title,
           description,
           price,
           totalTickets,
           endDate: new Date(endDate),
-          createdBy,
+          createdBy: req.user.nullifier_hash,
+          status: 'OPEN',
           stats: {
             create: {
               totalRevenue: 0,
@@ -174,6 +187,9 @@ export class RaffleController {
       return res.status(201).json(raffle);
     } catch (error) {
       console.error('Error creating raffle:', error);
+      if (error instanceof AppError) {
+        return res.status(error.httpStatus).json({ error: error.message });
+      }
       return res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -183,6 +199,10 @@ export class RaffleController {
     try {
       const { id } = req.params;
       const updateData = req.body;
+
+      if (!req.user?.nullifier_hash) {
+        throw new AppError(401, 'Usuario no autenticado');
+      }
 
       const raffle = await prisma.raffle.update({
         where: { id },
@@ -198,14 +218,12 @@ export class RaffleController {
         await statsService.updateRaffleStats(raffle.id);
       }
 
-      // Notificar a los participantes sobre la actualización
-      if (raffle.status !== 'OPEN') {
-        await notificationService.notifyRaffleUpdate(raffle);
-      }
-
       return res.json(raffle);
     } catch (error) {
       console.error('Error updating raffle:', error);
+      if (error instanceof AppError) {
+        return res.status(error.httpStatus).json({ error: error.message });
+      }
       return res.status(500).json({ error: 'Internal server error' });
     }
   }

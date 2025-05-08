@@ -4,6 +4,8 @@ import { verifyWorldIDProof } from '@worldcoin/idkit-core';
 
 const prisma = new PrismaClient();
 
+const INITIAL_WLD_BALANCE = 1.0; // Balance inicial en WLD
+
 export const verifyProof = async (req: Request, res: Response) => {
   try {
     const { proof, nullifier_hash, merkle_root, signal } = req.body;
@@ -28,12 +30,29 @@ export const verifyProof = async (req: Request, res: Response) => {
     });
 
     if (!existingUser) {
-      // Crear nuevo usuario
-      await prisma.user.create({
+      // Crear nuevo usuario con transacción inicial
+      const user = await prisma.user.create({
         data: {
           nullifier_hash,
-          tokens: 1, // Dar 1 token inicial
+          wld_balance: INITIAL_WLD_BALANCE,
         },
+      });
+
+      // Registrar la transacción inicial
+      await prisma.wLDTransaction.create({
+        data: {
+          userId: user.id,
+          amount: INITIAL_WLD_BALANCE,
+          type: 'REWARD',
+          status: 'COMPLETED',
+        },
+      });
+
+      return res.json({
+        success: true,
+        message: 'World ID verification successful',
+        nullifier_hash,
+        wld_balance: INITIAL_WLD_BALANCE,
       });
     }
 
@@ -41,6 +60,7 @@ export const verifyProof = async (req: Request, res: Response) => {
       success: true,
       message: 'World ID verification successful',
       nullifier_hash,
+      wld_balance: existingUser.wld_balance,
     });
   } catch (error) {
     console.error('Error verifying World ID proof:', error);

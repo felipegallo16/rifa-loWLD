@@ -3,11 +3,13 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+const TICKET_PRICE_WLD = 0.1; // Precio en WLD por ticket
+
 export const purchaseTicket = async (req: Request, res: Response) => {
   try {
     const { raffleId, number, nullifier_hash } = req.body;
 
-    // Verificar que el usuario existe y tiene suficientes tokens
+    // Verificar que el usuario existe y tiene suficiente balance WLD
     const user = await prisma.user.findUnique({
       where: { nullifier_hash },
     });
@@ -16,8 +18,8 @@ export const purchaseTicket = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    if (user.tokens < 1) {
-      return res.status(400).json({ error: 'Insufficient tokens' });
+    if (user.wld_balance < TICKET_PRICE_WLD) {
+      return res.status(400).json({ error: 'Insufficient WLD balance' });
     }
 
     // Verificar que el número está disponible
@@ -32,8 +34,8 @@ export const purchaseTicket = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Ticket number already taken' });
     }
 
-    // Crear el ticket y actualizar los tokens del usuario
-    const [ticket] = await prisma.$transaction([
+    // Crear el ticket, actualizar el balance y registrar la transacción
+    const [ticket, transaction] = await prisma.$transaction([
       prisma.ticket.create({
         data: {
           number,
@@ -41,11 +43,20 @@ export const purchaseTicket = async (req: Request, res: Response) => {
           raffleId,
         },
       }),
+      prisma.wLDTransaction.create({
+        data: {
+          userId: user.id,
+          amount: -TICKET_PRICE_WLD,
+          type: 'PURCHASE',
+          status: 'COMPLETED',
+          ticketId: ticket.id,
+        },
+      }),
       prisma.user.update({
         where: { id: user.id },
         data: {
-          tokens: {
-            decrement: 1,
+          wld_balance: {
+            decrement: TICKET_PRICE_WLD,
           },
         },
       }),
@@ -54,6 +65,8 @@ export const purchaseTicket = async (req: Request, res: Response) => {
     return res.json({
       success: true,
       ticket,
+      transaction,
+      remaining_balance: user.wld_balance - TICKET_PRICE_WLD,
     });
   } catch (error) {
     console.error('Error purchasing ticket:', error);

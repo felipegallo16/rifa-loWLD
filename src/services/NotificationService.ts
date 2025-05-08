@@ -1,5 +1,7 @@
-import nodemailer from 'nodemailer';
 import { PrismaClient, Notification, Prisma } from '@prisma/client';
+import { MiniKit } from '@worldcoin/minikit-js';
+import worldcoinConfig from '../config/worldcoin';
+import logger from '../utils/logger';
 
 const prisma = new PrismaClient();
 
@@ -15,46 +17,38 @@ interface RaffleWithTickets {
 type Ticket = Prisma.TicketGetPayload<{}>;
 
 export class NotificationService {
-  private transporter: nodemailer.Transporter;
-
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
-
     // Vincular métodos
     this.notifyWinner = this.notifyWinner.bind(this);
     this.notifyRaffleUpdate = this.notifyRaffleUpdate.bind(this);
     this.notifyRaffleCancellation = this.notifyRaffleCancellation.bind(this);
   }
 
-  private async sendEmail(config: EmailConfig): Promise<boolean> {
+  private async sendWorldAppNotification(
+    nullifierHash: string,
+    title: string,
+    message: string,
+    path?: string
+  ): Promise<boolean> {
     try {
-      await this.transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        ...config,
+      await fetch('https://developer.worldcoin.org/api/v2/minikit/send-notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.WORLD_DEVELOPER_API_KEY}`
+        },
+        body: JSON.stringify({
+          app_id: worldcoinConfig.app_id,
+          nullifier_hashes: [nullifierHash],
+          title: title.substring(0, 30), // Límite de 30 caracteres
+          message: message.substring(0, 200), // Límite de 200 caracteres
+          path: path || '/' // Ruta dentro de la mini-app a la que dirigir al usuario
+        })
       });
       return true;
     } catch (error) {
-      console.error('Error sending email:', error);
+      logger.error('Error sending World App notification:', error);
       return false;
-    }
-  }
-
-  private async getWinnerEmail(nullifierHash: string): Promise<string | null> {
-    try {
-      const winner = await prisma.user.findUnique({
-        where: { nullifierHash },
-        select: { email: true },
-      });
-      return winner?.email || null;
-    } catch (error) {
-      console.error('Error getting winner email:', error);
-      return null;
     }
   }
 
@@ -65,7 +59,8 @@ export class NotificationService {
     content: string
   ): Promise<Notification> {
     try {
-      return await prisma.notification.create({
+      // Crear la notificación en la base de datos
+      const notification = await prisma.notification.create({
         data: {
           userId,
           raffleId,
@@ -74,8 +69,21 @@ export class NotificationService {
           content,
         },
       });
+
+      // Enviar notificación a través de World App
+      const title = type === 'WINNER' ? '¡Felicitaciones!' : 'Actualización del Sorteo';
+      const path = `/raffles/${raffleId}`;
+      await this.sendWorldAppNotification(userId, title, content, path);
+
+      // Actualizar estado de la notificación
+      await prisma.notification.update({
+        where: { id: notification.id },
+        data: { status: 'SENT' }
+      });
+
+      return notification;
     } catch (error) {
-      console.error('Error creating notification:', error);
+      logger.error('Error creating notification:', error);
       throw error;
     }
   }
@@ -83,26 +91,12 @@ export class NotificationService {
   async notifyWinner(raffle: RaffleWithTickets, winningTicket: { userId: string }) {
     try {
       // Notificar al ganador
-      const notification = await this.createNotification(
+      await this.createNotification(
         winningTicket.userId,
         raffle.id,
         'WINNER',
-        `¡Felicitaciones! Has ganado el sorteo "${raffle.title}"`
+        `¡Felicitaciones! Has ganado el sorteo "${raffle.title}". Ingresa a la app para ver los detalles de tu premio.`
       );
-
-      // Enviar email al ganador
-      const winnerEmail = await this.getWinnerEmail(winningTicket.userId);
-      if (winnerEmail) {
-        await this.sendEmail({
-          to: winnerEmail,
-          subject: `¡Felicitaciones! Has ganado el sorteo "${raffle.title}"`,
-          html: `
-            <h1>¡Felicitaciones!</h1>
-            <p>Has resultado ganador del sorteo "${raffle.title}".</p>
-            <p>Nos pondremos en contacto contigo pronto para coordinar la entrega del premio.</p>
-          `,
-        });
-      }
 
       // Notificar a los demás participantes
       const participants = await prisma.ticket.findMany({
@@ -129,7 +123,7 @@ export class NotificationService {
         )
       );
     } catch (error) {
-      console.error('Error notifying winner:', error);
+      logger.error('Error notifying winner:', error);
       throw error;
     }
   }
@@ -157,7 +151,7 @@ export class NotificationService {
         )
       );
     } catch (error) {
-      console.error('Error notifying raffle update:', error);
+      logger.error('Error notifying raffle update:', error);
       throw error;
     }
   }
@@ -185,7 +179,7 @@ export class NotificationService {
         )
       );
     } catch (error) {
-      console.error('Error notifying raffle cancellation:', error);
+      logger.error('Error notifying raffle cancellation:', error);
       throw error;
     }
   }

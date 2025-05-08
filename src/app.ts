@@ -1,36 +1,46 @@
-import express from 'express';
+import express, { Express } from 'express';
 import cors from 'cors';
-import { config } from './config';
 import { errorHandler } from './middleware/error';
 import { setupRoutes } from './routes';
 import { setupMiddleware } from './middleware';
+import { validateEnv } from './utils/validateEnv';
 
-const app = express();
+export function setupApp(): Express {
+  // Validar variables de entorno
+  validateEnv();
 
-// Configuración de CORS
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-}));
+  const app = express();
 
-// Middleware básico
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+  // Configuración de CORS
+  app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  }));
 
-// Configurar middleware personalizado
-setupMiddleware(app);
+  // Middleware básico
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
-// Configurar rutas
-setupRoutes(app);
+  // Configurar middleware personalizado
+  setupMiddleware(app);
 
-// Manejador de errores
-app.use(errorHandler);
+  // Configurar rutas
+  setupRoutes(app);
 
-// Puerto
-const PORT = process.env.PORT || 3001;
+  // Manejador de errores
+  app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-}); 
+  return app;
+}
+
+// Solo si no estamos en modo test
+if (process.env.NODE_ENV !== 'test') {
+  const app = setupApp();
+  const PORT = process.env.PORT || 3001;
+
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+  });
+} 
