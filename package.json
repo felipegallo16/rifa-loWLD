@@ -5,10 +5,12 @@
   "scripts": {
     "dev": "vercel dev",
     "build": "tsc",
-    "start": "node dist/api/health.js"
+    "start": "vercel dev",
+    "deploy": "vercel deploy --prod"
   },
   "dependencies": {
-    "@vercel/node": "^3.0.0"
+    "@vercel/node": "^3.0.0",
+    "@types/node": "^18.0.0"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
