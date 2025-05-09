@@ -6,12 +6,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "dist",
-    "rootDir": ".",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./*"]
-    }
+    "moduleResolution": "node"
   },
   "include": ["api/**/*.ts"],
   "exclude": ["node_modules"]
