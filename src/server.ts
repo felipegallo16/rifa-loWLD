@@ -21,8 +21,13 @@ app.get('/api/rifas', async (req: Request, res: Response) => {
   }
 });
 
-const PORT = process.env.PORT || 3001;
+// Solo iniciamos el servidor si no estamos en Vercel
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3001;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-}); 
+// Exportamos la app para Vercel
+export default app; 
