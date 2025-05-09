@@ -1,19 +1,16 @@
 {
-  "name": "world-wintrust-backend",
+  "name": "wintrust-api",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "vercel dev",
     "build": "tsc",
-    "deploy": "vercel deploy --prod"
+    "start": "node dist/api/health.js"
   },
   "dependencies": {
-    "@prisma/client": "^5.0.0",
     "@vercel/node": "^3.0.0"
   },
   "devDependencies": {
-    "@types/node": "^18.15.11",
-    "prisma": "^5.0.0",
     "typescript": "^5.0.0",
     "vercel": "^32.0.0"
   }
