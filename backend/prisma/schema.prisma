@@ -1,115 +1,17 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
 generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
-}
-
-model User {
-  id             String           @id @default(uuid())
-  nullifier_hash String           @unique
-  wld_balance    Float            @default(1.0)
-  role           String           @default("USER")
-  tickets        Ticket[]
-  transactions   WLDTransaction[]
-  notifications  Notification[]
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  prizes         Prize[]
-}
-
-model Raffle {
-  id            String           @id @default(uuid())
-  name          String
-  description   String
-  endDate       DateTime
-  status        String           @default("OPEN")
-  drawData      String?          // Almacenará el JSON como string
-  tickets       Ticket[]
-  stats         RaffleStats?
-  notifications Notification[]
-  prize         Prize?           // Hacemos el campo opcional
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-}
-
-model Ticket {
-  id           String           @id @default(uuid())
-  number       Int
-  userId       String
-  raffleId     String
-  user         User             @relation(fields: [userId], references: [id])
-  raffle       Raffle           @relation(fields: [raffleId], references: [id])
-  transactions WLDTransaction[]
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-
-  @@unique([raffleId, number])
-}
-
-model RaffleStats {
-  id                   String   @id @default(uuid())
-  raffle              Raffle   @relation(fields: [raffleId], references: [id])
-  raffleId            String   @unique
-  totalRevenue        Float    @default(0)
-  ticketsSold         Int      @default(0)
-  uniqueParticipants  Int      @default(0)
-  averageTicketsPerUser Float  @default(0)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-}
-
-model Notification {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-  raffle    Raffle   @relation(fields: [raffleId], references: [id])
-  raffleId  String
-  type      String   @default("UPDATE")
-  status    String   @default("PENDING")
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model WLDTransaction {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  amount    Float
-  type      String   @default("PURCHASE")
-  status    String   @default("PENDING")
-  ticketId  String?
-  ticket    Ticket?  @relation(fields: [ticketId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model AdminSettings {
-  id                String   @id @default(uuid())
-  maxTicketsPerUser Int      @default(10)
-  minTicketPrice   Float    @default(0.1)
-  maxTicketPrice   Float    @default(100)
-  platformFee      Float    @default(0.05) // 5% por defecto
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-}
-
-model Prize {
-  id            String    @id @default(uuid())
-  raffleId      String   @unique
-  raffle        Raffle   @relation(fields: [raffleId], references: [id])
-  winnerId      String
-  winner        User     @relation(fields: [winnerId], references: [id])
-  status        String   @default("PENDING") // PENDING, CLAIMED, DELIVERED
-  claimData     String?  // Datos de contacto proporcionados al reclamar (JSON como string)
-  claimedAt     DateTime?
-  deliveryDate  DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model Rifa {
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  descripcion String
+  precio      Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 } 
