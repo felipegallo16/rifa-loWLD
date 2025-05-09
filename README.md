@@ -1,4 +1,4 @@
-# World Rifa-lo
+# World WinTrust
 
 Este es un proyecto de rifas integrado con World ID. El proyecto está estructurado como un monorepo que contiene el backend, frontend y la mini app de World ID.
 
@@ -40,8 +40,8 @@ Este es un proyecto de rifas integrado con World ID. El proyecto está estructur
 
 1. Clona el repositorio:
 ```bash
-git clone https://github.com/felipegallo16/world-rifa-lo.git
-cd world-rifa-lo
+git clone https://github.com/felipegallo16/world-wintrust.git
+cd world-wintrust
 ```
 
 2. Instala las dependencias del monorepo:
