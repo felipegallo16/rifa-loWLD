@@ -9,11 +9,12 @@
     "deploy": "vercel deploy --prod"
   },
   "dependencies": {
+    "@types/node": "^18.0.0",
     "@vercel/node": "^3.0.0",
-    "@types/node": "^18.0.0"
+    "@vercel/postgres": "^0.10.0"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
     "vercel": "^32.0.0"
   }
-} 
+}
