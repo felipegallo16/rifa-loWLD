@@ -6,10 +6,22 @@
       "use": "@vercel/node"
     }
   ],
-  "rewrites": [
-    { "source": "/health", "destination": "/api/health" },
-    { "source": "/api/health", "destination": "/api/health" },
-    { "source": "/rifas", "destination": "/api/rifas" },
-    { "source": "/api/rifas", "destination": "/api/rifas" }
+  "routes": [
+    {
+      "src": "/health",
+      "dest": "/api/health.ts"
+    },
+    {
+      "src": "/api/health",
+      "dest": "/api/health.ts"
+    },
+    {
+      "src": "/rifas",
+      "dest": "/api/rifas.ts"
+    },
+    {
+      "src": "/api/rifas",
+      "dest": "/api/rifas.ts"
+    }
   ]
 } 
