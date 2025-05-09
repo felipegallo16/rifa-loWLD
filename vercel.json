@@ -1,27 +1,9 @@
 {
   "version": 2,
-  "functions": {
-    "api/*.ts": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
-  "routes": [
-    {
-      "src": "/health",
-      "dest": "/api/health"
-    },
-    {
-      "src": "/api/health",
-      "dest": "/api/health"
-    },
-    {
-      "src": "/rifas",
-      "dest": "/api/rifas"
-    },
-    {
-      "src": "/api/rifas",
-      "dest": "/api/rifas"
-    }
+  "rewrites": [
+    { "source": "/health", "destination": "/api/health" },
+    { "source": "/api/health", "destination": "/api/health" },
+    { "source": "/rifas", "destination": "/api/rifas" },
+    { "source": "/api/rifas", "destination": "/api/rifas" }
   ]
 } 
