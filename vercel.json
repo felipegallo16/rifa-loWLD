@@ -1,9 +1,0 @@
-{
-  "version": 2,
-  "rewrites": [
-    { "source": "/health", "destination": "/api/health" },
-    { "source": "/api/health", "destination": "/api/health" },
-    { "source": "/rifas", "destination": "/api/rifas" },
-    { "source": "/api/rifas", "destination": "/api/rifas" }
-  ]
-} 
