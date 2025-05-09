@@ -17,6 +17,14 @@
       "dest": "/api/health.ts"
     },
     {
+      "src": "/api/rifas",
+      "dest": "/api/rifas.ts"
+    },
+    {
+      "src": "/rifas",
+      "dest": "/api/rifas.ts"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1.ts"
     }
