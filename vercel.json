@@ -1,27 +1,18 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/**/*.ts",
-      "use": "@vercel/node"
+  "functions": {
+    "api/*.ts": {
+      "runtime": "@vercel/node@3.0.0"
     }
-  ],
+  },
   "routes": [
     {
       "src": "/health",
-      "dest": "/api/health.ts"
-    },
-    {
-      "src": "/api/health",
-      "dest": "/api/health.ts"
+      "dest": "/api/health"
     },
     {
       "src": "/rifas",
-      "dest": "/api/rifas.ts"
-    },
-    {
-      "src": "/api/rifas",
-      "dest": "/api/rifas.ts"
+      "dest": "/api/rifas"
     }
   ]
 } 
