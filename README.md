@@ -1,64 +1,45 @@
-# Rifa LoWLD
+# World Rifa-lo
 
-Aplicación de rifas integrada con World ID, permitiendo la verificación de identidad única para la participación en rifas usando WLD tokens.
+Este es un proyecto de rifas integrado con World ID. El proyecto está estructurado como un monorepo que contiene tanto el backend como el frontend de la aplicación.
 
-## Características
+## Estructura del Proyecto
 
-- Autenticación con World ID
-- Compra de tickets usando WLD tokens
-- Sistema de rifas automatizado
-- Interfaz moderna y responsiva
-- Backend seguro con Node.js/TypeScript
-- Frontend con Next.js y Tailwind CSS
+- `backend/`: Servidor Node.js con Express y Prisma
+- `frontend/`: Aplicación web React con Next.js
 
 ## Requisitos
 
 - Node.js 18 o superior
-- SQLite
-- World ID API Key
+- npm 8 o superior
 
 ## Instalación
 
-1. Clonar el repositorio:
+1. Clona el repositorio:
 ```bash
-git clone git@github.com:felipegallo16/rifa-loWLD.git
-cd rifa-loWLD
+git clone https://github.com/felipegallo16/world-rifa-lo.git
+cd world-rifa-lo
 ```
 
-2. Instalar dependencias:
+2. Instala las dependencias:
 ```bash
 npm install
 ```
 
-3. Configurar variables de entorno:
-Crear un archivo `.env` con las siguientes variables:
-```env
-PORT=3001
-DATABASE_URL="file:./dev.db"
-WORLD_ID_APP_ID="app_..."
-WORLD_ID_ACTION_NAME="..."
-WORLD_ID_RECEIVER_ADDRESS="..."
-```
+3. Configura las variables de entorno:
+- Copia `.env.example` a `.env` en la carpeta backend
+- Configura las variables necesarias
 
-4. Ejecutar migraciones:
+## Desarrollo
+
+Para ejecutar el backend:
 ```bash
-npx prisma migrate dev
+npm run backend
 ```
 
-5. Iniciar el servidor:
+Para ejecutar el frontend:
 ```bash
-npm run dev
+npm run frontend
 ```
-
-## Estructura del Proyecto
-
-- `/src` - Código fuente del backend
-  - `/controllers` - Controladores de la aplicación
-  - `/routes` - Rutas de la API
-  - `/services` - Lógica de negocio
-  - `/middleware` - Middlewares de Express
-  - `/types` - Tipos de TypeScript
-  - `/utils` - Utilidades
 
 ## Licencia
 
