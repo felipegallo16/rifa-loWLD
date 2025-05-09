@@ -2,11 +2,10 @@
   "name": "world-rifa-lo-backend",
   "version": "1.0.0",
   "private": true,
-  "main": "api/index.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only api/index.ts",
+    "dev": "vercel dev",
     "build": "tsc",
-    "start": "node dist/api/index.js"
+    "deploy": "vercel deploy --prod"
   },
   "dependencies": {
     "@prisma/client": "^5.0.0",
@@ -16,6 +15,6 @@
     "@types/node": "^18.15.11",
     "prisma": "^5.0.0",
     "typescript": "^5.0.0",
-    "ts-node-dev": "^2.0.0"
+    "vercel": "^32.0.0"
   }
 } 
