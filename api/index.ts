@@ -4,12 +4,17 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Extraer la ruta de la URL
+  const path = req.url?.split('?')[0] || '/';
+
   if (req.method === 'GET') {
-    if (req.url === '/api/health') {
+    // Health check
+    if (path === '/api/health' || path === '/health') {
       return res.json({ status: 'ok' });
     }
     
-    if (req.url === '/api/rifas') {
+    // Rifas endpoint
+    if (path === '/api/rifas' || path === '/rifas') {
       try {
         const rifas = await prisma.rifa.findMany();
         return res.json(rifas);
@@ -19,5 +24,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
   
-  return res.status(404).json({ error: 'Not found' });
+  // Log para debugging
+  console.log('Request path:', path);
+  console.log('Request method:', req.method);
+  
+  return res.status(404).json({ error: 'Not found', path });
 } 
