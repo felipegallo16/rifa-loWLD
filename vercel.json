@@ -1,8 +1,27 @@
 {
-  "rewrites": [
+  "version": 2,
+  "functions": {
+    "api/*.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/api"
+      "src": "/health",
+      "dest": "/api/health"
+    },
+    {
+      "src": "/api/health",
+      "dest": "/api/health"
+    },
+    {
+      "src": "/rifas",
+      "dest": "/api/rifas"
+    },
+    {
+      "src": "/api/rifas",
+      "dest": "/api/rifas"
     }
   ]
 } 
